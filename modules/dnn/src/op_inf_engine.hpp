@@ -21,10 +21,11 @@
 
 #define INF_ENGINE_RELEASE_2018R5 2018050000
 #define INF_ENGINE_RELEASE_2019R1 2019010000
+#define INF_ENGINE_RELEASE_2019R2 2019020000
 
 #ifndef INF_ENGINE_RELEASE
-#warning("IE version have not been provided via command-line. Using 2019R1 by default")
-#define INF_ENGINE_RELEASE INF_ENGINE_RELEASE_2019R1
+#warning("IE version have not been provided via command-line. Using 2019R2 by default")
+#define INF_ENGINE_RELEASE INF_ENGINE_RELEASE_2019R2
 #endif
 
 #define INF_ENGINE_VER_MAJOR_GT(ver) (((INF_ENGINE_RELEASE) / 10000) > ((ver) / 10000))
@@ -39,7 +40,7 @@
 #endif
 
 //#define INFERENCE_ENGINE_DEPRECATED  // turn off deprecation warnings from IE
-//there is no way to suppress warnigns from IE only at this moment, so we are forced to suppress warnings globally
+//there is no way to suppress warnings from IE only at this moment, so we are forced to suppress warnings globally
 #if defined(__GNUC__)
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
@@ -91,18 +92,22 @@ public:
     void forward(const std::vector<Ptr<BackendWrapper> >& outBlobsWrappers,
                  bool isAsync);
 
-    void initPlugin(InferenceEngine::ICNNNetwork& net);
+    void initPlugin(InferenceEngine::CNNNetwork& net);
 
     void addBlobs(const std::vector<cv::Ptr<BackendWrapper> >& ptrs);
 
 private:
     InferenceEngine::Builder::Network netBuilder;
 
-    InferenceEngine::InferenceEnginePluginPtr enginePtr;
-    InferenceEngine::InferencePlugin plugin;
     InferenceEngine::ExecutableNetwork netExec;
     InferenceEngine::BlobMap allBlobs;
-    InferenceEngine::TargetDevice targetDevice;
+    std::string device_name;
+#if INF_ENGINE_VER_MAJOR_LE(2019010000)
+    InferenceEngine::InferenceEnginePluginPtr enginePtr;
+    InferenceEngine::InferencePlugin plugin;
+#else
+    bool isInit = false;
+#endif
 
     struct InfEngineReqWrapper
     {
